@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>2026 앱 다운로드 프로모션 유저 플로우차트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  body { margin: 0; padding: 20px; background: #f8fafc; font-family: -apple-system, sans-serif; }
+  h1 { text-align: center; color: #1e293b; font-size: 1.4rem; margin-bottom: 4px; }
+  p.sub { text-align: center; color: #64748b; font-size: 0.85rem; margin-bottom: 6px; }
+  p.change-note { text-align: center; color: #dc2626; font-size: 0.8rem; margin-bottom: 20px; font-weight: 600; }
+  .mermaid { display: flex; justify-content: center; overflow: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+  .legend span { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: #fff; }
+</style>
+</head>
+<body>
+<h1>2026 앱 다운로드 프로모션 유저 플로우차트</h1>
+<div class="legend">
+  <span style="background:#7c3aed">🌐 웹</span>
+  <span style="background:#f59e0b">🔀 에어브릿지</span>
+  <span style="background:#3b82f6">🏪 스토어</span>
+  <span style="background:#8b5cf6">📤 앱→Braze SDK 이벤트</span>
+  <span style="background:#ec4899">📡 Braze 인앱 메시지</span>
+  <span style="background:#f43f5e">📝 Braze Custom HTML IAM</span>
+  <span style="background:#14b8a6">🎯 Braze 세그먼트 분기</span>
+  <span style="background:#6b7280">🔔 OS 권한</span>
+  <span style="background:#10b981">💾 DB</span>
+  <span style="background:#22c55e">✅ 완료</span>
+  <span style="background:#ef4444">❌ 미완료</span>
+</div>
+<div class="mermaid">
+flowchart TD
+    classDef web fill:#7c3aed,stroke:#6d28d9,color:#fff
+    classDef airbridge fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef store fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef braze fill:#ec4899,stroke:#db2777,color:#fff
+    classDef brazehtml fill:#f43f5e,stroke:#e11d48,color:#fff
+    classDef brazelogic fill:#14b8a6,stroke:#0d9488,color:#fff
+    classDef os fill:#6b7280,stroke:#4b5563,color:#fff
+    classDef db fill:#10b981,stroke:#059669,color:#fff
+    classDef event fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    classDef end_success fill:#22c55e,stroke:#16a34a,color:#fff
+    classDef end_fail fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef decision fill:#fbbf24,stroke:#f59e0b,color:#000
+    classDef settings fill:#9ca3af,stroke:#6b7280,color:#fff
+
+    WEB["🌐 웹 이벤트 페이지<br/>CTA: 앱 다운로드하고 혜택 받기"]:::web
+    WEB -->|CTA 클릭| AB["🔀 에어브릿지 라우팅"]:::airbridge
+
+    AB -->|미설치| STORE["🏪 App Store<br/>숨고 앱"]:::store
+    AB -->|기설치| APP_EXIST["📱 앱 오픈<br/>(Deep Link 콜백)"]
+
+    STORE -->|이탈| EXIT["❌ 이탈<br/>플로우 종료"]:::end_fail
+    STORE -->|설치| APP_NEW["📱 앱 첫 실행<br/>(Deferred Deep Link 콜백)"]
+
+    %% ===== 신규 설치 =====
+    APP_NEW --> EVT_NEW["📤 앱 → Braze SDK<br/>① setCustomAttribute<br/>('push_authorization_status',<br/>'not_determined'/'denied'/'authorized')<br/>② logCustomEvent<br/>('deeplink_open_promotion',<br/>{link_type: 'deferred',<br/>term: 'appinstall_2603'})"]:::event
+
+    %% ===== 기설치 =====
+    APP_EXIST --> EVT_EXIST["📤 앱 → Braze SDK<br/>① setCustomAttribute<br/>('push_authorization_status',<br/>'not_determined'/'denied'/'authorized')<br/>② logCustomEvent<br/>('deeplink_open_promotion',<br/>{link_type: 'direct',<br/>term: 'appinstall_2603'})"]:::event
+
+    %% ===== Braze 분기 =====
+    EVT_NEW --> BRAZE_ROUTE{"🎯 Braze 대상자 선별<br/>트리거: deeplink_open_promotion<br/>WHERE term = appinstall_2603<br/>─────────────────<br/>세그먼트 필터:<br/>① is_participated attr<br/>② 약관 동의 4개 attr<br/>③ Foreground Push Enabled for App<br/>④ link_type 프로퍼티"}:::brazelogic
+    EVT_EXIST --> BRAZE_ROUTE
+
+    %% ===== 분기 A: 이미 참여 =====
+    BRAZE_ROUTE -->|"is_participated_promotion<br/>_appinstall2603 = true"| IAM_ALREADY["📡 Braze 인앱 메시지<br/>세그먼트: is_participated_promotion<br/>_appinstall2603 = true<br/>✅ 이미 이벤트 참여가 완료되었습니다"]:::braze
+    IAM_ALREADY -->|확인| HOME_DONE["🏠 숨고 홈"]:::end_success
+
+    %% ===== 분기 B: 기설치 + 약관 미충족 =====
+    BRAZE_ROUTE -->|"is_participated_promotion<br/>_appinstall2603 ≠ true<br/>+ 4개 attr 중 미충족<br/>+ link_type = direct"| IAM_EXIST_NOTICE["📡 Braze 인앱 메시지<br/>세그먼트:<br/>is_participated_promotion<br/>_appinstall2603 ≠ true<br/>+ 4개 attr 중 하나라도 미충족<br/>+ link_type = direct<br/>─────────────────<br/>이미 숨고 앱이 설치되어 있어요!<br/>마케팅 앱 알림을 켜주셔야<br/>응모가 완료돼요<br/>─────────────────<br/>📌 모달 조회 시:<br/>logCustomEvent('view_has_app_modal',<br/>{event_name: 'promotion_appinstall_2603'})"]:::braze
+    IAM_EXIST_NOTICE -->|"응모 완료하기"| TERMS["📝 Braze Custom HTML IAM<br/>약관 동의 모달<br/>(미동의 항목만 동적 노출)<br/>☐ 개인정보 마케팅 활용 동의<br/>☐ 마케팅 알림 수신 동의<br/>─────────────────<br/>📌 모달 조회 시:<br/>logCustomEvent('view_terms_consent_modal',<br/>{displayed_items: ['marketing_info',<br/>'marketing_message']})"]:::brazehtml
+
+    %% ===== 분기 C: 신규 + 약관 미충족 =====
+    BRAZE_ROUTE -->|"is_participated_promotion<br/>_appinstall2603 ≠ true<br/>+ 4개 attr 중 미충족<br/>+ link_type = deferred"| TERMS
+
+    %% ===== 분기 D: 모두 동의 + 푸시 OK =====
+    BRAZE_ROUTE -->|"is_participated_promotion<br/>_appinstall2603 ≠ true<br/>+ 4개 attr 모두 충족<br/>+ Foreground Push Enabled<br/>for App = true"| IAM_COMPLETE["📡 Braze 인앱 메시지<br/>트리거: deeplink_open_promotion<br/>또는 push_permission<br/>WHERE status=granted<br/>세그먼트: 4개 attr 충족<br/>+ push_authorization_status<br/>= authorized<br/>🎉 이벤트 참여 완료!<br/>─────────────────<br/>📌 모달 조회 시:<br/>logCustomEvent('view_participated<br/>_promotion_modal',<br/>{event_name: 'promotion_appinstall_2603'})<br/>+ is_participated_promotion<br/>_appinstall2603 = true"]:::braze
+    IAM_COMPLETE -->|확인| HOME_DONE2["🏠 숨고 홈<br/>✅ 이벤트 완료"]:::end_success
+
+    %% ===== 분기 E: 모두 동의 + 푸시 미허용 =====
+    BRAZE_ROUTE -->|"is_participated_promotion<br/>_appinstall2603 ≠ true<br/>+ 4개 attr 모두 충족<br/>+ Foreground Push Enabled<br/>for App ≠ true"| PUSH_STATUS_CHECK{"🎯 Braze 세그먼트 확인<br/>push_authorization_status?"}:::brazelogic
+
+    PUSH_STATUS_CHECK -->|"authorized"| IAM_COMPLETE
+
+    PUSH_STATUS_CHECK -->|"not_determined"| IAM_PUSH_PRIMER_NEW["📡 Braze Push Primer IAM<br/>세그먼트:<br/>push_authorization_status<br/>= not_determined<br/>─────────────────<br/>🔔 기기 알림을 켜주셔야<br/>이벤트 참여가 완료돼요!<br/>버튼: [알림 허용하기]<br/>on-click: Request Push Permission"]:::braze
+
+    PUSH_STATUS_CHECK -->|"denied"| IAM_PUSH_PRIMER_DENIED["📡 Braze Push Primer IAM<br/>세그먼트:<br/>push_authorization_status<br/>= denied<br/>─────────────────<br/>🔔 설정에서 알림을 켜주셔야<br/>이벤트 참여가 완료돼요!<br/>버튼: [설정에서 켜기]<br/>on-click: 설정 앱 딥링크"]:::braze
+
+    IAM_PUSH_PRIMER_NEW -->|"OS 권한 프롬프트<br/>→ 허용"| EVT_PUSH_GRANTED["📤 앱 → Braze SDK<br/>① setCustomAttribute<br/>('push_authorization_status',<br/>'authorized')<br/>② logCustomEvent<br/>('push_permission',<br/>{status: 'granted',<br/>event_name:<br/>'promotion_appinstall_2603',<br/>source: 'prompt'})"]:::event
+    IAM_PUSH_PRIMER_NEW -->|"OS 권한 프롬프트<br/>→ 거부"| EVT_PUSH_DENIED["📤 앱 → Braze SDK<br/>① setCustomAttribute<br/>('push_authorization_status',<br/>'denied')<br/>② logCustomEvent<br/>('push_permission',<br/>{status: 'denied',<br/>event_name:<br/>'promotion_appinstall_2603',<br/>source: 'prompt'})"]:::event
+    IAM_PUSH_PRIMER_NEW -->|닫기| EVT_PUSH_DENIED
+
+    EVT_PUSH_GRANTED --> IAM_COMPLETE
+    EVT_PUSH_DENIED --> IAM_FAIL
+
+    IAM_PUSH_PRIMER_DENIED -->|설정에서 켜기| SETTINGS["⚙️ iOS 설정 앱<br/>숨고 > 알림"]:::settings
+    IAM_PUSH_PRIMER_DENIED -->|닫기| EVT_PUSH_DENIED
+
+    SETTINGS -->|"허용 후 앱 복귀"| EVT_PUSH_GRANTED_SETTINGS["📤 앱 → Braze SDK<br/>① setCustomAttribute<br/>('push_authorization_status',<br/>'authorized')<br/>② logCustomEvent<br/>('push_permission',<br/>{status: 'granted',<br/>event_name:<br/>'promotion_appinstall_2603',<br/>source: 'settings'})"]:::event
+    SETTINGS -->|거부 유지| EVT_PUSH_DENIED
+
+    EVT_PUSH_GRANTED_SETTINGS --> IAM_COMPLETE
+
+    %% ===== 약관 동의 처리 =====
+    TERMS -->|"[응모 완료하기] 클릭<br/>(is_all_checked = true)"| TERMS_ACTION["📝 brazeBridge 실행:<br/>① logCustomEvent('click_terms_submit_button',<br/> {is_all_checked: true,<br/> checked_items: ['marketing_info',<br/> 'marketing_message'],<br/> event_name: 'promotion_appinstall_2603'})<br/>② setCustomUserAttribute<br/> · is_marketing_info_opted_in = true<br/> · is_marketing_message_opted_in = true<br/>③ setEmailNotificationSubscriptionType<br/> · opted_in<br/>④ setPushNotificationSubscriptionType<br/> · opted_in<br/>⑤ fetch('/api/consent') → DB 저장<br/>⑥ requestImmediateDataFlush()<br/>⑦ 기기 권한 확인 모달로 이동"]:::brazehtml
+
+    TERMS_ACTION --> PUSH_STATUS_CHECK
+
+    EVT_PUSH_DENIED --> IAM_FAIL["📡 Braze 인앱 메시지<br/>트리거: push_permission<br/>WHERE status=denied<br/>🔕 이벤트 참여를 완료할 수 없어요<br/>마케팅 수신 동의와 알림 권한이<br/>모두 켜져야 이벤트 참여가 완료됩니다."]:::braze
+    IAM_FAIL -->|확인| HOME_FAIL["🏠 숨고 홈<br/>❌ 이벤트 미완료"]:::end_fail
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { fontSize: '11px', nodePadding: 16 }, flowchart: { useMaxWidth: false, htmlLabels: true, curve: 'basis', padding: 20, nodeSpacing: 40, rankSpacing: 50 } });</script>
+
+<style>
+    .summary-container { max-width: 1200px; margin: 40px auto 0; padding: 0 20px 40px; font-family: -apple-system, sans-serif; }
+    .change-banner { background: linear-gradient(135deg, #fef2f2, #fff1f2); border: 2px solid #fca5a5; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+    .change-banner h3 { margin: 0 0 12px 0; font-size: 15px; color: #dc2626; }
+    .change-banner ul { margin: 0; padding-left: 20px; font-size: 13px; color: #991b1b; line-height: 1.8; }
+    .change-banner code { background: #fecaca; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+    .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .spec-card { background: #F8F8FA; border-radius: 12px; padding: 20px; }
+    .spec-card.highlight { background: linear-gradient(135deg, #fff1f2, #fce7f3); border: 2px solid #f43f5e; }
+    .spec-card.highlight-teal { background: linear-gradient(135deg, #f0fdfa, #ccfbf1); border: 2px solid #14b8a6; }
+    .spec-card.highlight-amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 2px solid #f59e0b; }
+    .spec-card h3 { margin: 0 0 16px 0; font-size: 15px; color: #1a1a1a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .spec-card h3 .badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; color: #fff; }
+    .spec-card h3 .badge.braze { background: #FF6B9D; }
+    .spec-card h3 .badge.brazehtml { background: #f43f5e; }
+    .spec-card h3 .badge.brazelogic { background: #14b8a6; }
+    .spec-card h3 .badge.event { background: #8b5cf6; }
+    .spec-card h3 .badge.new { background: #dc2626; }
+    .spec-card h3 .badge.changed { background: #ea580c; }
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .spec-table th { background: #E5E5E7; padding: 10px; text-align: left; font-weight: 600; }
+    .spec-table td { padding: 10px; border-bottom: 1px solid #E5E5E7; vertical-align: top; }
+    .spec-table code { background: #E8E0FF; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: 'SF Mono', Monaco, monospace; }
+    .spec-table .tag-braze { background: #FFE4ED; color: #E8457C; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .spec-table .tag-brazehtml { background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .spec-table .tag-brazelogic { background: #ccfbf1; color: #0d9488; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .spec-table .tag-event { background: #EDE9FE; color: #7C3AED; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .code-block { background: #1e1e2e; color: #cdd6f4; border-radius: 8px; padding: 16px; font-family: 'SF Mono', Monaco, monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; margin-top: 12px; }
+    .code-block .comment { color: #6c7086; }
+    .code-block .keyword { color: #cba6f7; }
+    .code-block .string { color: #a6e3a1; }
+    .code-block .func { color: #89b4fa; }
+    .code-block .const { color: #f9e2af; }
+    .code-block .changed { color: #fab387; font-weight: bold; }
+    .flow-summary { margin-top: 24px; padding: 24px; background: #fff; border: 2px solid #E5E5E7; border-radius: 12px; overflow-x: auto; }
+    .flow-summary h3 { margin: 0 0 16px 0; font-size: 16px; }
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    .flow-table th { background: #F8F8FA; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #E5E5E7; }
+    .flow-table th:nth-child(1) { width: 18%; }
+    .flow-table th:nth-child(2) { width: 42%; }
+    .flow-table th:nth-child(3) { width: 28%; }
+    .flow-table th:nth-child(4) { width: 12%; }
+    .flow-table td { padding: 12px; border-bottom: 1px solid #E5E5E7; vertical-align: top; word-wrap: break-word; }
+    .flow-table .user-type { font-weight: 600; color: #6B4DE6; white-space: nowrap; }
+    .flow-table .user-type.blue { color: #3B82F6; }
+    .flow-arrow { color: #4A90D9; font-weight: 600; }
+    .seq-diagram { margin-top: 16px; }
+    .seq-step { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-left: 3px solid #14b8a6; padding-left: 16px; margin-bottom: 4px; }
+    .seq-step.changed { border-left-color: #ea580c; background: #fff7ed; margin-left: -16px; padding-left: 32px; border-radius: 0 8px 8px 0; }
+    .seq-num { background: #14b8a6; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .seq-num.changed { background: #ea580c; }
+    .seq-content { font-size: 13px; line-height: 1.5; }
+    .seq-content strong { color: #0d9488; }
+    .seq-content strong.changed { color: #ea580c; }
+    .seq-content code { background: #ccfbf1; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .role-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 24px; border-radius: 12px; overflow: hidden; border: 2px solid #e5e7eb; }
+    .role-col { padding: 20px; }
+    .role-col.before { background: #fef2f2; }
+    .role-col.after { background: #f0fdf4; }
+    .role-col h4 { margin: 0 0 12px 0; font-size: 14px; }
+    .role-col ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.8; }
+    .role-col .removed { text-decoration: line-through; color: #dc2626; }
+    .role-col .added { color: #16a34a; font-weight: 600; }
+    .highlight-row { background: #fff7ed !important; }
+</style>
+
+<div class="summary-container">
+
+    <!-- ★ "모두 동의" 정의 카드 -->
+    <div class="spec-card highlight-amber" style="margin-bottom: 24px;">
+        <h3>📋 "모두 동의" 조건 정의 </h3>
+        <p style="font-size:13px; color:#92400e; margin:0 0 12px 0;">Braze 세그먼트 분기에서 <strong>"모두 동의"</strong>로 판정하려면 아래 4개 attribute가 <strong>모두</strong> 충족되어야 합니다.</p>
+        <table class="spec-table">
+            <tr><th style="width:40px">#</th><th>Attribute</th><th>타입</th><th>동의 값</th><th>Braze 세그먼트 필터</th></tr>
+            <tr>
+                <td>①</td>
+                <td><code>is_marketing_info_opted_in</code></td>
+                <td>Custom Attr (Boolean)</td>
+                <td><code>true</code></td>
+                <td>Custom Attribute → is_marketing_info_opted_in = true</td>
+            </tr>
+            <tr>
+                <td>②</td>
+                <td><code>is_marketing_message_opted_in</code></td>
+                <td>Custom Attr (Boolean)</td>
+                <td><code>true</code></td>
+                <td>Custom Attribute → is_marketing_message_opted_in = true</td>
+            </tr>
+            <tr>
+                <td>③</td>
+                <td><code>email_subscribe</code></td>
+                <td>Braze Standard (Subscription)</td>
+                <td><code>opted_in</code> or <code>subscribed</code></td>
+                <td>Email Subscription Status = opted_in OR subscribed</td>
+            </tr>
+            <tr>
+                <td>④</td>
+                <td><code>push_subscribe</code></td>
+                <td>Braze Standard (Subscription)</td>
+                <td><code>opted_in</code> or <code>subscribed</code></td>
+                <td>Push Subscription Status = opted_in OR subscribed</td>
+            </tr>
+        </table>
+        <div style="margin-top:12px; padding:12px 16px; background:#fff; border-radius:8px; border:1px solid #fbbf24; font-size:12px; color:#92400e;">
+            <strong>⚠️ "약관 미충족"</strong> = 위 4개 조건 중 <strong>하나라도</strong> 미충족 → 약관 동의 모달 노출 필요<br/>
+            <strong>📌 Braze 세그먼트 구성</strong>: 4개 조건을 AND로 결합. 미충족 세그먼트는 "NOT (① AND ② AND ③ AND ④)" 사용
+        </div>
+    </div>
+
+    <div class="spec-grid">
+        <!-- 핵심 이벤트 -->
+        <div class="spec-card highlight-teal">
+            <h3>📤 deeplink_open_promotion  <span class="badge event">SDK</span></h3>
+            <table class="spec-table">
+                <tr><th colspan="3" style="background:#14b8a6;color:#fff">앱이 발송하는 진입 이벤트</th></tr>
+                <tr><th>순서</th><th>항목</th><th>설명</th></tr>
+                <tr><td>①</td><td><code>setCustomAttribute('push_authorization_status', ...)</code></td><td>OS 푸시 권한 상태: <code>not_determined</code> / <code>denied</code> / <code>authorized</code></td></tr>
+                <tr><td>②</td><td><code>logCustomEvent('deeplink_open_promotion', {...})</code></td><td>딥링크 진입 이벤트</td></tr>
+                <tr><th colspan="3" style="background:#14b8a6;color:#fff">deeplink_open_promotion 프로퍼티</th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>link_type</code></td><td>String</td><td><code>deferred</code> = 신규 설치 | <code>direct</code> = 기설치</td></tr>
+                <tr><td><code>term</code></td><td>String</td><td>프로모션 캠페인 식별 (예: appinstall_2603)</td></tr>
+            </table>
+            <div class="code-block" style="margin-top:12px">
+<span class="comment">// 앱 딥링크 콜백 (Swift 예시)</span><br/>
+<span class="keyword">func</span> <span class="func">handleDeepLink</span>(url: URL, isDeferred: Bool) {<br/>
+&nbsp;&nbsp;<span class="keyword">let</span> <span class="const">params</span> = parseParams(url)<br/>
+<br/>
+&nbsp;&nbsp;<span class="comment">// ① 푸시 권한 상태 확인 후 attribute 설정</span><br/>
+&nbsp;&nbsp;UNUserNotificationCenter.current().<span class="func">getNotificationSettings</span> { settings <span class="keyword">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span> <span class="const">status</span>: String<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">switch</span> settings.authorizationStatus {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">case</span> .notDetermined: status = <span class="string">"not_determined"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">case</span> .denied: status = <span class="string">"denied"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">case</span> .authorized, .provisional: status = <span class="string">"authorized"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">default</span>: status = <span class="string">"unknown"</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Braze.<span class="func">setCustomAttribute</span>(<span class="string">"push_authorization_status"</span>, status)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// ② 딥링크 이벤트 발송</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Braze.<span class="func">logCustomEvent</span>(<span class="string">"deeplink_open_promotion"</span>, properties: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"link_type"</span>: isDeferred ? <span class="string">"deferred"</span> : <span class="string">"direct"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"term"</span>: params[<span class="string">"term"</span>]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;])<br/>
+&nbsp;&nbsp;}<br/>
+}
+            </div>
+        </div>
+
+        <!-- Braze 분기 조건 -->
+        <div class="spec-card highlight-teal">
+            <h3>🎯 Braze 대상자 선별 조건  <span class="badge brazelogic">Braze</span></h3>
+            <table class="spec-table">
+                <tr><th colspan="3" style="background:#14b8a6;color:#fff">공통 트리거: <code style="background:rgba(255,255,255,0.2);color:#fff">deeplink_open_promotion</code> WHERE <code style="background:rgba(255,255,255,0.2);color:#fff">term</code>=appinstall_2603</th></tr>
+                <tr><th>분기</th><th>세그먼트 필터 조건</th><th>결과 IAM</th></tr>
+                <tr>
+                    <td><strong>A. 이미 참여</strong></td>
+                    <td><code>is_participated_promotion_appinstall2603</code> = true</td>
+                    <td>✅ "이미 참여 완료"</td>
+                </tr>
+                <tr>
+                    <td><strong>B. 기설치 + 미충족</strong></td>
+                    <td><code>is_participated…</code> ≠ true<br/>+ <strong>약관 4개 중 하나라도 미충족</strong><br/>+ <code>link_type</code> = direct</td>
+                    <td>👋 기설치 안내 모달</td>
+                </tr>
+                <tr>
+                    <td><strong>C. 신규 + 미충족</strong></td>
+                    <td><code>is_participated…</code> ≠ true<br/>+ <strong>약관 4개 중 하나라도 미충족</strong><br/>+ <code>link_type</code> = deferred</td>
+                    <td>📝 약관 동의 모달 (바로)</td>
+                </tr>
+                <tr>
+                    <td><strong>D. 모두 동의 + 푸시 OK</strong></td>
+                    <td><code>is_participated…</code> ≠ true<br/>+ <strong>약관 4개 모두 충족</strong><br/>+ Foreground Push Enabled for App = true</td>
+                    <td>🎉 참여 완료 (바로)</td>
+                </tr>
+                <tr>
+                    <td><strong>E. 모두 동의 + 푸시 미허용</strong></td>
+                    <td><code>is_participated…</code> ≠ true<br/>+ <strong>약관 4개 모두 충족</strong><br/>+ Foreground Push Enabled for App = false</td>
+                    <td>→ push_authorization_status 분기</td>
+                </tr>
+                <tr>
+                    <td><strong>E-1. not_determined</strong></td>
+                    <td><code>push_authorization_status</code> = not_determined</td>
+                    <td>🔔 Push Primer (알림 허용하기)</td>
+                </tr>
+                <tr>
+                    <td><strong>E-2. denied</strong></td>
+                    <td><code>push_authorization_status</code> = denied</td>
+                    <td>🔔 Push Primer (설정에서 켜기)</td>
+                </tr>
+            </table>
+            <div style="margin-top:12px; padding:10px 14px; background:#f0fdfa; border-radius:8px; font-size:11px; color:#0d9488;">
+                <strong>💡 "약관 4개 모두 충족" =</strong>
+                <code>is_marketing_info_opted_in</code>=true AND
+                <code>is_marketing_message_opted_in</code>=true AND
+                <code>email_subscribe</code>=opted_in/subscribed AND
+                <code>push_subscribe</code>=opted_in/subscribed
+            </div>
+        </div>
+    </div>
+
+    <div class="spec-grid">
+        <!-- 기타 이벤트 -->
+        <div class="spec-card">
+            <h3>📤 기타 Custom Event <span class="badge event">SDK</span></h3>
+            <table class="spec-table">
+                <tr><th colspan="3" style="background:#8b5cf6;color:#fff">Event: <code style="background:rgba(255,255,255,0.2);color:#fff">push_permission</code></th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>status</code></td><td>String</td><td><code>granted</code> = 허용 | <code>denied</code> = 거부/닫기</td></tr>
+                <tr><td><code>event_name</code></td><td>String</td><td>프로모션 식별자 (예: promotion_appinstall_2603)</td></tr>
+                <tr><td><code>source</code></td><td>String</td><td>권한 허용 출처: <code>prompt</code> / <code>settings</code> (선택)</td></tr>
+                <tr><td colspan="3" style="color:#666;font-size:12px;">OS 푸시 권한 결과에 따라 앱에서 즉시 발송<br/>→ <code>status=granted</code>: 참여 완료 IAM 트리거<br/>→ <code>status=denied</code>: 실패 IAM 트리거</td></tr>
+                <tr><th colspan="3" style="background:#ec4899;color:#fff">Event: <code style="background:rgba(255,255,255,0.2);color:#fff">view_participated_promotion_modal</code> </th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>event_name</code></td><td>String</td><td>프로모션 식별자 (예: promotion_appinstall_2603)</td></tr>
+                <tr><td colspan="3" style="color:#666;font-size:12px;">참여 완료 모달 조회 시 발송 (Braze IAM impression 시점)</td></tr>
+                <tr><th colspan="3" style="background:#ec4899;color:#fff">Event: <code style="background:rgba(255,255,255,0.2);color:#fff">view_has_app_modal</code> </th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>event_name</code></td><td>String</td><td>프로모션 식별자 (예: promotion_appinstall_2603)</td></tr>
+                <tr><td colspan="3" style="color:#666;font-size:12px;">기설치 안내 모달 조회 시 발송 (Braze IAM impression 시점)</td></tr>
+                <tr><th colspan="3" style="background:#ec4899;color:#fff">Event: <code style="background:rgba(255,255,255,0.2);color:#fff">view_terms_consent_modal</code> </th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>displayed_items</code></td><td>Array</td><td>노출된 동의 항목 목록 (예: ['marketing_info', 'marketing_message'])</td></tr>
+                <tr><td colspan="3" style="color:#666;font-size:12px;">약관 동의 모달 조회 시 발송 (Braze Custom HTML IAM 로드 시점)</td></tr>
+                <tr><th colspan="3" style="background:#f43f5e;color:#fff">Event: <code style="background:rgba(255,255,255,0.2);color:#fff">click_terms_submit_button</code> </th></tr>
+                <tr><th>Property</th><th>Type</th><th>설명</th></tr>
+                <tr><td><code>is_all_checked</code></td><td>Boolean</td><td>모든 체크박스 선택 여부 (true = 활성화된 버튼 클릭)</td></tr>
+                <tr><td><code>checked_items</code></td><td>Array</td><td>선택된 항목 목록 (예: ['marketing_info', 'marketing_message'])</td></tr>
+                <tr><td><code>event_name</code></td><td>String</td><td>프로모션 식별자 (예: promotion_appinstall_2603)</td></tr>
+            </table>
+        </div>
+
+        <!-- IAM 트리거 -->
+        <div class="spec-card">
+            <h3>📡 인앱 메시지 트리거 조건  <span class="badge braze">Braze</span></h3>
+            <table class="spec-table">
+                <tr><th>인앱 메시지</th><th>타입</th><th>트리거 + 세그먼트</th></tr>
+                <tr>
+                    <td>✅ 이미 참여 완료</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td><code>deeplink_open_promotion</code><br/>WHERE term=appinstall_2603<br/>+ <code>is_participated_promotion_appinstall2603</code> = true</td>
+                </tr>
+                <tr>
+                    <td>👋 기설치 안내</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td><code>deeplink_open_promotion</code><br/>WHERE term=appinstall_2603<br/>+ 미참여 + 약관 미충족 + <code>link_type</code>=direct</td>
+                </tr>
+                <tr>
+                    <td>📝 약관 동의 모달</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td><code>deeplink_open_promotion</code><br/>WHERE term=appinstall_2603<br/>+ 미참여 + 약관 미충족 + <code>link_type</code>=deferred<br/>또는 기설치 안내 모달에서 이동</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>🎉 참여 완료 📌</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td><code>deeplink_open_promotion</code> 또는 <code>push_permission</code> WHERE <code>status</code>=granted<br/>세그먼트: 4개 attr 충족 + <code>push_authorization_status</code> = authorized<br/>📌 모달 조회 시 <code>is_participated_promotion_appinstall2603</code> = true</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>🔔 Push Primer (not_determined) 📌</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td>세그먼트: 4개 attr 충족 + Foreground Push = false<br/>+ <code>push_authorization_status</code> = not_determined<br/>버튼: [알림 허용하기] → Request Push Permission</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td>🔔 Push Primer (denied) 📌</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td>세그먼트: 4개 attr 충족 + Foreground Push = false<br/>+ <code>push_authorization_status</code> = denied<br/>버튼: [설정에서 켜기] → 설정 앱 딥링크</td>
+                </tr>
+                <tr>
+                    <td>🔕 비활성화 안내</td>
+                    <td><span class="tag-brazehtml">Custom HTML</span></td>
+                    <td><code>push_permission</code> WHERE <code>status</code>=denied</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Custom HTML IAM 스펙 -->
+    <div class="spec-card highlight" style="margin-bottom: 24px;">
+        <h3>📝 약관 동의 Custom HTML IAM 상세 스펙  <span class="badge brazehtml">Custom HTML</span></h3>
+        <table class="spec-table" style="margin-bottom: 16px;">
+            <tr><th style="width:160px">항목</th><th>내용</th></tr>
+            <tr><td>메시지 타입</td><td>Custom Code (HTML Upload)</td></tr>
+            <tr><td>트리거 이벤트</td><td><code>deeplink_open_promotion</code> (신규 미동의)<br/>또는 기설치 안내 모달에서 이동 (기설치 경유)</td></tr>
+            <tr><td>brazeBridge 메서드</td><td>
+                <code>getUser().setCustomUserAttribute()</code>,
+                <code>getUser().setEmailNotificationSubscriptionType()</code>,
+                <code>getUser().setPushNotificationSubscriptionType()</code>,
+                <code>logCustomEvent()</code>,
+                <code>requestImmediateDataFlush()</code>,
+                <code>closeMessage()</code>
+            </td></tr>
+            <tr><td>외부 API 호출</td><td><code>fetch('https://api.soomgo.com/v1/consent')</code> → 숨고 서버 DB</td></tr>
+        </table>
+
+        <h4 style="font-size:14px; margin: 20px 0 8px;">📐 [응모 완료하기] 버튼 클릭 시 실행 시퀀스</h4>
+        <div class="seq-diagram">
+            <div class="seq-step">
+                <div class="seq-num">1</div>
+                <div class="seq-content"><strong>유효성 검증</strong> — 2개 체크박스 모두 체크 확인 (is_all_checked = true)</div>
+            </div>
+            <div class="seq-step changed">
+                <div class="seq-num changed">2</div>
+                <div class="seq-content"><strong class="changed">버튼 클릭 이벤트 발송</strong><br/>
+                    <code>logCustomEvent('click_terms_submit_button', {is_all_checked: true, checked_items: ['marketing_info', 'marketing_message'], event_name: 'promotion_appinstall_2603'})</code>
+                </div>
+            </div>
+            <div class="seq-step">
+                <div class="seq-num">3</div>
+                <div class="seq-content"><strong>Braze attribute 업데이트</strong><br/>
+                    <code>setCustomUserAttribute('is_marketing_info_opted_in', true)</code><br/>
+                    <code>setCustomUserAttribute('is_marketing_message_opted_in', true)</code><br/>
+                    <code>setEmailNotificationSubscriptionType('opted_in')</code><br/>
+                    <code>setPushNotificationSubscriptionType('opted_in')</code>
+                </div>
+            </div>
+            <div class="seq-step">
+                <div class="seq-num">4</div>
+                <div class="seq-content"><strong>숨고 서버 API 호출</strong> — <code>fetch('/api/consent')</code> → DB 저장 (실패 시 롤백)</div>
+            </div>
+            <div class="seq-step">
+                <div class="seq-num">5</div>
+                <div class="seq-content"><strong>전송</strong> — <code>requestImmediateDataFlush()</code></div>
+            </div>
+            <div class="seq-step changed">
+                <div class="seq-num changed">6</div>
+                <div class="seq-content"><strong class="changed">기기 권한 확인 모달로 이동</strong> → Push Primer IAM</div>
+            </div>
+        </div>
+
+        <div class="code-block" style="margin-top:16px">
+<span class="comment">// Custom HTML IAM 내 brazeBridge 코드 (v14)</span><br/>
+<span class="keyword">async function</span> <span class="func">handleSubmit</span>() {<br/>
+&nbsp;&nbsp;<span class="keyword">const</span> <span class="const">user</span> = appboyBridge.getUser();<br/>
+<br/>
+&nbsp;&nbsp;<span class="comment">// ① Custom Attributes</span><br/>
+&nbsp;&nbsp;user.<span class="func">setCustomUserAttribute</span>(<span class="changed"><span class="string">"is_marketing_info_opted_in"</span></span>, <span class="keyword">true</span>);<br/>
+&nbsp;&nbsp;user.<span class="func">setCustomUserAttribute</span>(<span class="changed"><span class="string">"is_marketing_message_opted_in"</span></span>, <span class="keyword">true</span>);<br/>
+<br/>
+&nbsp;&nbsp;<span class="comment">// ② Braze Standard Subscription</span><br/>
+&nbsp;&nbsp;user.<span class="func">setEmailNotificationSubscriptionType</span>(<span class="changed"><span class="string">"opted_in"</span></span>);<br/>
+&nbsp;&nbsp;user.<span class="func">setPushNotificationSubscriptionType</span>(<span class="changed"><span class="string">"opted_in"</span></span>);<br/>
+<br/>
+&nbsp;&nbsp;<span class="comment">// ③ 숨고 서버 DB 저장</span><br/>
+&nbsp;&nbsp;<span class="keyword">const</span> <span class="const">res</span> = <span class="keyword">await</span> <span class="func">fetch</span>(<span class="string">'/api/v1/consent'</span>, { ... });<br/>
+&nbsp;&nbsp;<span class="keyword">if</span> (!res.ok) { <span class="comment">/* 롤백 */</span> <span class="keyword">return</span>; }<br/>
+<br/>
+&nbsp;&nbsp;<span class="comment">// ④ 동의 완료 이벤트</span><br/>
+&nbsp;&nbsp;appboyBridge.<span class="func">logCustomEvent</span>(<span class="string">"terms_agreed"</span>, { ... });<br/>
+&nbsp;&nbsp;appboyBridge.<span class="func">requestImmediateDataFlush</span>();<br/>
+&nbsp;&nbsp;appboyBridge.<span class="func">closeMessage</span>();<br/>
+}
+        </div>
+    </div>
+
+    <!-- 참여 완료 모달 attr 생성 -->
+    <div class="spec-card highlight-amber" style="margin-bottom: 24px;">
+        <h3>🎉 참여 완료 모달 — attribute 생성 시점 </h3>
+        <table class="spec-table">
+            <tr><th style="width:160px">항목</th><th>내용</th></tr>
+            <tr><td>트리거</td><td>🎉 참여 완료 인앱 메시지 <strong>조회(impression)</strong> 시점</td></tr>
+            <tr><td>설정할 attribute</td><td><code>is_participated_promotion_appinstall2603</code> = <code>true</code></td></tr>
+            <tr><td>변경 이유</td><td>프로모션별 고유 attribute → 중복 참여 방지 세분화 + 모달 조회 시점과 동기화</td></tr>
+        </table>
+        <div class="code-block" style="margin-top:12px">
+<span class="comment">// 참여 완료 IAM 내 — 모달이 표시될 때 즉시 실행</span><br/>
+appboyBridge.getUser().<span class="func">setCustomUserAttribute</span>(<br/>
+&nbsp;&nbsp;<span class="changed"><span class="string">"is_participated_promotion_appinstall2603"</span></span>, <span class="keyword">true</span><br/>
+);<br/>
+appboyBridge.<span class="func">requestImmediateDataFlush</span>();
+        </div>
+    </div>
+
+    <!-- Attribute 총정리 -->
+    <div class="spec-grid">
+        <div class="spec-card">
+            <h3>🔑 Braze Custom Attribute </h3>
+            <table class="spec-table">
+                <tr><th>Attribute</th><th>타입</th><th>설정 주체</th></tr>
+                <tr class="highlight-row">
+                    <td><code>push_authorization_status</code></td>
+                    <td>String</td>
+                    <td><span class="tag-event">앱 SDK</span> 딥링크 진입 시<br/>값: not_determined / denied / authorized</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td><code>is_participated_promotion<br/>_appinstall2603</code></td>
+                    <td>Boolean</td>
+                    <td><span class="tag-braze">Braze IAM</span> 참여 완료 모달 조회 시 ⚡</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td><code>is_marketing_info_opted_in</code></td>
+                    <td>Boolean</td>
+                    <td><span class="tag-brazehtml">brazeBridge</span> 약관 동의 모달 ⚡</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td><code>is_marketing_message_opted_in</code></td>
+                    <td>Boolean</td>
+                    <td><span class="tag-brazehtml">brazeBridge</span> 약관 동의 모달 ⚡</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="spec-card">
+            <h3>📧 Braze Standard Subscription </h3>
+            <table class="spec-table">
+                <tr><th>Subscription</th><th>동의 값</th><th>설정 주체</th></tr>
+                <tr class="highlight-row">
+                    <td><code>email_subscribe</code></td>
+                    <td><code>opted_in</code> / <code>subscribed</code></td>
+                    <td><span class="tag-brazehtml">brazeBridge</span><br/><code>setEmailNotificationSubscriptionType</code></td>
+                </tr>
+                <tr class="highlight-row">
+                    <td><code>push_subscribe</code></td>
+                    <td><code>opted_in</code> / <code>subscribed</code></td>
+                    <td><span class="tag-brazehtml">brazeBridge</span><br/><code>setPushNotificationSubscriptionType</code></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="spec-grid">
+        <div class="spec-card">
+            <h3>🔄 UI 유형 구분</h3>
+            <table class="spec-table">
+                <tr><th>UI</th><th>트리거</th></tr>
+                <tr><td>📝 약관 동의 모달</td><td><code>deeplink_open_promotion</code> 또는 기설치 안내 모달에서 이동</td></tr>
+                <tr><td>👋 기설치 안내</td><td><code>deeplink_open_promotion</code></td></tr>
+                <tr class="highlight-row"><td>🎉 참여 완료 📌</td><td><code>deeplink_open_promotion</code> 또는 <code>push_permission</code> WHERE <code>status</code>=granted<br/>조회 시 <code>is_participated…</code> = true</td></tr>
+                <tr class="highlight-row"><td>🔔 Push Primer (not_determined) 📌</td><td>세그먼트: <code>push_authorization_status</code> = not_determined</td></tr>
+                <tr class="highlight-row"><td>🔔 Push Primer (denied) 📌</td><td>세그먼트: <code>push_authorization_status</code> = denied</td></tr>
+                <tr><td>🔕 비활성화 안내</td><td><code>push_permission</code> WHERE <code>status</code>=denied</td></tr>
+                <tr><td>✅ 이미 참여 완료</td><td><code>deeplink_open_promotion</code></td></tr>
+            </table>
+        </div>
+
+        <div class="spec-card highlight">
+            <h3>🔌 숨고 서버 API 스펙 </h3>
+            <table class="spec-table">
+                <tr><th style="width:130px">항목</th><th>내용</th></tr>
+                <tr><td>Endpoint</td><td><code>POST /api/v1/consent</code></td></tr>
+                <tr><td>호출 주체</td><td>Braze Custom HTML IAM 내 <code>fetch()</code></td></tr>
+                <tr><td>인증</td><td>앱 내 세션 토큰 (쿠키 또는 Authorization 헤더)</td></tr>
+                <tr class="highlight-row"><td>Request Body</td><td>
+                    <code>{ is_marketing_info_opted_in: boolean, is_marketing_message_opted_in: boolean, email_subscribe: string, push_subscribe: string, consent_timestamp: string, event_name: string }</code>
+                </td></tr>
+                <tr><td>Success</td><td><code>200 OK</code> — <code>{ success: true }</code></td></tr>
+                <tr><td>Failure</td><td><code>4xx/5xx</code> — brazeBridge attribute 롤백 필요</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 유저 타입별 플로우 요약 -->
+    <div class="flow-summary">
+        <h3>📋 유저 타입별 플로우 요약</h3>
+        <table class="flow-table">
+            <thead>
+                <tr><th>유저 타입</th><th>플로우</th><th>Braze 분기 조건</th><th>최종 결과</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="user-type">신규 + 모두 동의 + 푸시 허용</td>
+                    <td>📤 <code>deeplink_open_promotion</code><br/><small>WHERE term=appinstall_2603 AND link_type=deferred</small><br/><span class="flow-arrow">→</span> <span style="color:#14b8a6;font-weight:700">🎯 분기 D</span> <span class="flow-arrow">→</span> 🎉 참여 완료 <small>(attr 생성)</small></td>
+                    <td>미참여 + 약관4개 충족 + Push OK</td>
+                    <td>🎉 완료</td>
+                </tr>
+                <tr>
+                    <td class="user-type">신규 + 약관 미충족 + 기기 허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 C</span> → <span style="color:#f43f5e;font-weight:700">📝 약관 동의</span> → 🎉 참여 완료</td>
+                    <td>미참여 + 4개 중 미충족 + deferred + authorized</td>
+                    <td>🎉 완료</td>
+                </tr>
+                <tr>
+                    <td class="user-type">신규 + 약관 미충족 + 기기 미허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 C</span> → <span style="color:#f43f5e;font-weight:700">📝 약관 동의</span> → <span style="color:#ec4899;font-weight:700">🔔 Push Primer</span> → ...</td>
+                    <td>미참여 + 4개 중 미충족 + deferred + not_determined/denied</td>
+                    <td>허용→🎉 / 거부→❌</td>
+                </tr>
+                <tr>
+                    <td class="user-type">신규 + 모두 동의 + 푸시 미허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 E</span> → <span style="color:#ec4899;font-weight:700">🔔 Push Primer IAM</span> → OS 권한 프롬프트 → ...</td>
+                    <td>미참여 + 약관4개 충족 + Foreground Push≠OK</td>
+                    <td>허용→🎉 / 거부→❌</td>
+                </tr>
+                <tr><td colspan="4" style="height:8px;border:none;"></td></tr>
+                <tr>
+                    <td class="user-type blue">기설치 + 모두 동의 + 푸시 허용</td>
+                    <td>📤 <code>deeplink_open_promotion</code><br/><small>WHERE term=appinstall_2603 AND link_type=direct</small><br/><span class="flow-arrow">→</span> <span style="color:#14b8a6;font-weight:700">🎯 분기 D</span> <span class="flow-arrow">→</span> 🎉 참여 완료 <small>(attr 생성)</small></td>
+                    <td>미참여 + 약관4개 충족 + Push OK</td>
+                    <td>🎉 완료</td>
+                </tr>
+                <tr>
+                    <td class="user-type blue">기설치 + 약관 미충족 + 기기 허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 B</span> → 👋 기설치 안내 → <span style="color:#f43f5e;font-weight:700">📝 약관 동의</span> → 🎉 참여 완료</td>
+                    <td>미참여 + 4개 중 미충족 + direct + authorized</td>
+                    <td>🎉 완료</td>
+                </tr>
+                <tr>
+                    <td class="user-type blue">기설치 + 약관 미충족 + 기기 미허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 B</span> → 👋 기설치 안내 → <span style="color:#f43f5e;font-weight:700">📝 약관 동의</span> → <span style="color:#ec4899;font-weight:700">🔔 Push Primer</span> → ...</td>
+                    <td>미참여 + 4개 중 미충족 + direct + not_determined/denied</td>
+                    <td>허용→🎉 / 거부→❌</td>
+                </tr>
+                <tr>
+                    <td class="user-type blue">기설치 + 모두 동의 + 푸시 미허용</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 E</span> → <span style="color:#ec4899;font-weight:700">🔔 Push Primer IAM</span> → OS 권한 프롬프트 → ...</td>
+                    <td>미참여 + 약관4개 충족 + Foreground Push≠OK</td>
+                    <td>허용→🎉 / 거부→❌</td>
+                </tr>
+                <tr><td colspan="4" style="height:8px;border:none;"></td></tr>
+                <tr>
+                    <td class="user-type" style="color:#E8457C">중복 참여 (공통)</td>
+                    <td>📤 → <span style="color:#14b8a6;font-weight:700">🎯 분기 A</span> → ✅ "이미 참여 완료"</td>
+                    <td>is_participated_promotion_appinstall2603 = true</td>
+                    <td>✅ 이미 참여</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 주의사항 -->
+    <div class="spec-card" style="margin-top: 24px; background: #fffbeb; border: 2px solid #f59e0b;">
+        <h3>📌 참고 사항</h3>
+        <table class="spec-table">
+            <tr><th style="width:200px">항목</th><th>설명</th></tr>
+            <tr>
+                <td><strong>이벤트 프로퍼티 vs 세그먼트</strong></td>
+                <td><code>term</code>, <code>link_type</code> → <strong>트리거 조건</strong>(이벤트 프로퍼티 필터)<br/>
+                    <code>is_participated…</code>, <code>is_marketing_info_opted_in</code>, <code>is_marketing_message_opted_in</code> → <strong>세그먼트 필터</strong>(custom attribute)<br/>
+                    <code>email_subscribe</code>, <code>push_subscribe</code> → <strong>세그먼트 필터</strong>(Braze standard subscription)</td>
+            </tr>
+            <tr class="highlight-row">
+                <td><strong>"모두 동의" 세그먼트 구성</strong></td>
+                <td>4개 조건을 <strong>AND</strong>로 결합:<br/>
+                    <code>is_marketing_info_opted_in</code> = true AND <code>is_marketing_message_opted_in</code> = true<br/>
+                    AND Email Subscription = opted_in OR subscribed<br/>
+                    AND Push Subscription = opted_in OR subscribed<br/>
+                    <strong>"약관 미충족"</strong> = NOT (위 조건)</td>
+            </tr>
+            <tr class="highlight-row">
+                <td><strong>attribute 생성 시점</strong></td>
+                <td><code>is_participated_promotion_appinstall2603</code>는 <strong>참여 완료 모달 조회 시</strong> 생성.<br/>
+                    <code>requestImmediateDataFlush()</code> 반드시 호출.</td>
+            </tr>
+            <tr class="highlight-row">
+                <td><strong>Subscription 설정 주의</strong></td>
+                <td><code>email_subscribe</code>, <code>push_subscribe</code>는 Braze Standard Subscription →<br/>
+                    <code>setCustomUserAttribute</code>가 아닌 전용 메서드:<br/>
+                    <code>setEmailNotificationSubscriptionType('opted_in')</code><br/>
+                    <code>setPushNotificationSubscriptionType('opted_in')</code></td>
+            </tr>
+            <tr>
+                <td><strong>IAM 우선순위</strong></td>
+                <td>동일 이벤트에 여러 IAM 트리거 가능 → 우선순위 설정 필수<br/>
+                    권장: 이미 참여(Highest) > 기설치 안내 > 약관 동의 > 참여 완료</td>
+            </tr>
+            <tr>
+                <td><strong>CORS 설정</strong></td>
+                <td>Custom HTML IAM에서 숨고 서버 API 호출 시 CORS 허용 필요</td>
+            </tr>
+            <tr>
+                <td><strong>IAM 연속 트리거</strong></td>
+                <td><code>triggerMinimumTimeInterval</code> 5초 이하 설정 권장</td>
+            </tr>
+            <tr>
+                <td><strong>분기 E 처리</strong></td>
+                <td>"모두 동의 + Foreground Push Enabled = false" → <code>push_authorization_status</code>로 분기<br/>
+                    <strong>not_determined</strong>: [알림 허용하기] → Request Push Permission<br/>
+                    <strong>denied</strong>: [설정에서 켜기] → 설정 앱 딥링크 (app-settings:)</td>
+            </tr>
+            <tr>
+                <td><strong>프로모션별 attribute</strong></td>
+                <td><code>is_participated_promotion_appinstall2603</code>은 전용 attribute.<br/>
+                    향후: <code>is_participated_promotion_{프로모션ID}</code> 규칙 권장</td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>
