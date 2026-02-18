@@ -579,14 +579,16 @@
     }
     .intro-img-section {
       flex: none;
-      height: 45vh;
+      height: 35vh;
     }
     .intro-full-img {
-      height: 45vh;
+      height: 35vh;
     }
     .intro-text-section {
       flex: 1;
       padding: 28px 24px 40px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .intro-title { font-size: 40px; }
     .intro-letter { font-size: 13px; }
@@ -685,11 +687,11 @@ function toggleRecipe(id) {
         </div>
         <div class="recipe-card" onclick="showView('r2')">
         <div class="card-visual">
-          <img src="images/img_004_99fd86bb.png" alt="Kimchi Seonjae">
+          <img src="images/img_004_99fd86bb.png" alt="Kimchi Seon Jae">
           <span class="card-tag">Ricetta 2</span>
         </div>
         <div class="card-body">
-          <h2>Stile Monaca Seonjae</h2>
+          <h2>Stile Monaca Seon Jae</h2>
           <div class="card-origin">선재스님 · Sapore ricco e complesso</div>
             <p>Più vicina al kimchi tradizionale. Dolcezza naturale della pera, profondità con zenzero e salsa di soia.</p>
             <span class="card-badge rich">🍐 Ricco · Complesso</span>
@@ -762,7 +764,7 @@ function toggleRecipe(id) {
             Pomodoro, peperone rosso, barbabietola
           </div>
           <div class="comparison-box seon">
-            <strong>Seonjae — aggiunge:</strong>
+            <strong>Seon Jae — aggiunge:</strong>
             Pera/mela, zenzero, salsa di soia, wakame
           </div>
         </div>
@@ -847,7 +849,7 @@ function toggleRecipe(id) {
         <div class="farcing-steps">
           <div class="farcing-step"><div class="farcing-num">1</div><div class="farcing-step-body"><span class="farcing-step-title">Aprire il cavolo:</span><p class="farcing-step-desc">Prendere un cespo (o mezzo cespo) di cavolo salato e posizionarlo con l'interno rivolto verso l'alto.</p></div></div>
           <div class="farcing-step"><div class="farcing-num">2</div><div class="farcing-step-body"><span class="farcing-step-title">Iniziare dalle foglie interne:</span><p class="farcing-step-desc">Partire dalle foglie più piccole al centro. Sollevare ogni foglia con una mano e con l'altra spalmare il condimento dal gambo verso la punta.</p></div></div>
-          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seonjae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
+          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seon Jae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
           <div class="farcing-step"><div class="farcing-num">4</div><div class="farcing-step-body"><span class="farcing-step-title">Quantità:</span><p class="farcing-step-desc">Le foglie esterne più grandi richiedono un po' più di condimento, quelle interne più piccole ne richiedono di meno.</p></div></div>
         </div>
         <div class="sub-heading">Avvolgere con le foglie esterne</div>
@@ -877,7 +879,7 @@ function toggleRecipe(id) {
     <div class="view" id="view-r1">
       <div class="recipe-toggle">
         <button class="recipe-toggle-btn active" onclick="showView('r1')">🌱 Jeong Kwan</button>
-        <button class="recipe-toggle-btn" onclick="showView('r2')">🍐 Seonjae</button>
+        <button class="recipe-toggle-btn" onclick="showView('r2')">🍐 Seon Jae</button>
       </div>
       <div style="margin-bottom:20px;">
         <h2 style="font-family:'DM Serif Display',serif; font-size:24px; color:var(--ink); margin-bottom:4px;">Kimchi Stile Monaco Jeong Kwan</h2>
@@ -971,7 +973,7 @@ function toggleRecipe(id) {
         <div class="farcing-steps">
           <div class="farcing-step"><div class="farcing-num">1</div><div class="farcing-step-body"><span class="farcing-step-title">Aprire il cavolo:</span><p class="farcing-step-desc">Prendere un cespo (o mezzo cespo) di cavolo salato e posizionarlo con l'interno rivolto verso l'alto.</p></div></div>
           <div class="farcing-step"><div class="farcing-num">2</div><div class="farcing-step-body"><span class="farcing-step-title">Iniziare dalle foglie interne:</span><p class="farcing-step-desc">Partire dalle foglie più piccole al centro. Sollevare ogni foglia con una mano e con l'altra spalmare il condimento dal gambo verso la punta.</p></div></div>
-          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seonjae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
+          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seon Jae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
           <div class="farcing-step"><div class="farcing-num">4</div><div class="farcing-step-body"><span class="farcing-step-title">Quantità:</span><p class="farcing-step-desc">Le foglie esterne più grandi richiedono un po' più di condimento, quelle interne più piccole ne richiedono di meno.</p></div></div>
         </div>
         <div class="sub-heading">Avvolgere con le foglie esterne</div>
@@ -988,10 +990,10 @@ function toggleRecipe(id) {
     <div class="view" id="view-r2">
       <div class="recipe-toggle">
         <button class="recipe-toggle-btn" onclick="showView('r1')">🌱 Jeong Kwan</button>
-        <button class="recipe-toggle-btn active" onclick="showView('r2')">🍐 Seonjae</button>
+        <button class="recipe-toggle-btn active" onclick="showView('r2')">🍐 Seon Jae</button>
       </div>
       <div style="margin-bottom:20px;">
-        <h2 style="font-family:'DM Serif Display',serif; font-size:24px; color:var(--ink); margin-bottom:4px;">Kimchi Stile Monaca Seonjae</h2>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:24px; color:var(--ink); margin-bottom:4px;">Kimchi Stile Monaca Seon Jae</h2>
         <p style="font-size:14px; color:var(--ink-muted);">선재스님 · Sapore ricco e complesso · Dolcezza della pera, zenzero e salsa di soia</p>
       </div>
       <div class="section-block">
@@ -1071,7 +1073,7 @@ function toggleRecipe(id) {
         <div class="farcing-steps">
           <div class="farcing-step"><div class="farcing-num">1</div><div class="farcing-step-body"><span class="farcing-step-title">Aprire il cavolo:</span><p class="farcing-step-desc">Prendere un cespo (o mezzo cespo) di cavolo salato e posizionarlo con l'interno rivolto verso l'alto.</p></div></div>
           <div class="farcing-step"><div class="farcing-num">2</div><div class="farcing-step-body"><span class="farcing-step-title">Iniziare dalle foglie interne:</span><p class="farcing-step-desc">Partire dalle foglie più piccole al centro. Sollevare ogni foglia con una mano e con l'altra spalmare il condimento dal gambo verso la punta.</p></div></div>
-          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seonjae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
+          <div class="farcing-step"><div class="farcing-num">3</div><div class="farcing-step-body"><span class="farcing-step-title">Foglia per foglia:</span><p class="farcing-step-desc">Procedere dall'interno verso l'esterno, condendo ogni foglia.</p><div class="farcing-style-tips"><div class="farcing-style-tip"><span class="tip-label">Stile Jeong Kwan:</span> uno strato molto sottile, per un sapore pulito e leggero.</div><div class="farcing-style-tip"><span class="tip-label">Stile Seon Jae:</span> dal gambo alla punta in modo uniforme, più generoso.</div></div></div></div>
           <div class="farcing-step"><div class="farcing-num">4</div><div class="farcing-step-body"><span class="farcing-step-title">Quantità:</span><p class="farcing-step-desc">Le foglie esterne più grandi richiedono un po' più di condimento, quelle interne più piccole ne richiedono di meno.</p></div></div>
         </div>
         <div class="sub-heading">Avvolgere con le foglie esterne</div>
