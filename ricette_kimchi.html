@@ -640,12 +640,12 @@ function closeIntro() {
   setTimeout(function() {
     overlay.classList.add('hidden');
   }, 600);
+  window.scrollTo(0, 0);
 }
 function showView(id) {
   var views = document.querySelectorAll('.view');
   var navBtns = document.querySelectorAll('.nav-btn');
 
-  // Ricette 탭 클릭 시 기본으로 r1 표시
   if (id === 'home') { id = 'r1'; }
 
   views.forEach(function(v) {
@@ -658,13 +658,14 @@ function showView(id) {
     btn.classList.toggle('active', i === idx);
   });
 
-  // 토글 버튼 상태 동기화
   var toggleBtns = document.querySelectorAll('.recipe-toggle-btn');
   if (toggleBtns.length) {
-    toggleBtns.forEach(function(btn, i) {
-      btn.classList.toggle('active', (i === 0 && id === 'r1') || (i === 1 && id === 'r2'));
+    toggleBtns.forEach(function(btn) {
+      var isR1 = btn.textContent.indexOf('Jeong') !== -1;
+      btn.classList.toggle('active', (isR1 && id === 'r1') || (!isR1 && id === 'r2'));
     });
   }
+
   document.querySelector('.nav-bar').scrollIntoView({ behavior: 'smooth' });
 }
 function toggleRecipe(id) {
@@ -902,9 +903,6 @@ function toggleRecipe(id) {
         <h2 style="font-family:'DM Serif Display',serif; font-size:22px; color:var(--ink); margin-bottom:4px;">Kimchi Stile Monaco Jeong Kwan</h2>
         <p style="font-size:14px; color:var(--ink-muted);">정관스님 · Completamente vegano · Gusto pulito e leggero</p>
       </div>
-      <div class="detail-hero">
-        <img src="images/img_003_c88a4519.png" alt="Kimchi Jeong Kwan">
-      </div>
       <div class="section-block">
         <h3>Ingredienti</h3>
         <div class="sub-heading">Salamoia</div>
@@ -1015,9 +1013,6 @@ function toggleRecipe(id) {
       <div style="margin-bottom:20px;">
         <h2 style="font-family:'DM Serif Display',serif; font-size:22px; color:var(--ink); margin-bottom:4px;">Kimchi Stile Monaca Seonjae</h2>
         <p style="font-size:14px; color:var(--ink-muted);">선재스님 · Sapore ricco e complesso · Dolcezza della pera, zenzero e salsa di soia</p>
-      </div>
-      <div class="detail-hero">
-        <img src="images/img_004_99fd86bb.png" alt="Kimchi Seonjae">
       </div>
       <div class="section-block">
         <h3>Ingredienti</h3>
