@@ -106,7 +106,7 @@
     font-size:11px; font-weight:700; margin-right:4px;
   }
   .nav-btn.active .nav-btn-num {
-    background:var(--red); color:var(--white);
+    background:rgba(255,255,255,0.3); color:var(--white);
   }
 
   .recipe-toggle {
@@ -355,10 +355,10 @@
     display:grid; grid-template-columns:1fr 1fr; gap:12px;
     margin-bottom:16px; border-radius:12px; overflow:hidden;
   }
-  .salare-imgs img { width:100%; height:auto; max-height:200px; object-fit:cover; display:block; border-radius:8px; border:1px solid var(--border); }
-  .salare-imgs img:first-child { grid-column:1 / -1; max-height:220px; object-fit:contain; background:var(--cream-dark); }
+  .salare-imgs img { width:100%; height:200px; object-fit:cover; display:block; border-radius:8px; border:1px solid var(--border); }
+  .salare-imgs img:first-child { grid-column:1 / -1; height:220px; object-fit:cover; background:var(--cream-dark); }
   @media (max-width:480px) {
-    .salare-imgs { grid-template-columns:1fr; } .salare-imgs img:first-child { max-height:240px; } .salare-imgs img { max-height:220px; }
+    .salare-imgs { grid-template-columns:1fr; } .salare-imgs img:first-child { height:200px; } .salare-imgs img { height:200px; }
   }
   .condimento-imgs {
     display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
@@ -812,14 +812,14 @@ function toggleRecipe(id) {
           <img src="images/img_010_51fbe4ba.png" alt="Cavolo in salamoia" />
           <img src="images/img_015_0be90d0e.png" alt="Cavolo salato pronto" />
         </div>
-        <div class="brining-info">
-          <h4>Tempo di salamoia</h4>
+        <div>
+          <div class="sub-sub-heading">Tempo di salamoia</div>
           <p>Il tempo di salatura è di 6–10 ore (come indicato nelle ricette). In un ambiente caldo (18–20°C) bastano 7–9 ore; in un luogo freddo servono 12–15 ore. A metà del tempo, capovolgere i pezzi di cavolo per una salatura uniforme.</p>
-          <h4>Come verificare</h4>
+          <div class="sub-sub-heading">Come verificare</div>
           <p>Piegare la parte bianca più spessa del gambo. Se si piega dolcemente senza spezzarsi, il cavolo è pronto. Se è ancora rigido e si spezza, lasciare in salamoia per altre 1–2 ore.</p>
-          <h4>Stato ideale</h4>
+          <div class="sub-sub-heading">Stato ideale</div>
           <p>I gambi restano freschi e croccanti, mentre le foglie sono morbide e appassite. Se anche i gambi sono completamente molli, il cavolo è troppo salato e il kimchi rischia di essere troppo salato e molle.</p>
-          <h4>Dopo la salatura</h4>
+          <div class="sub-sub-heading">Dopo la salatura</div>
           <p>Sciacquare il cavolo 3–4 volte in acqua fredda. Poi capovolgerlo con le foglie interne verso il basso su un colapasta e lasciare scolare per 30 minuti–3 ore.</p>
         </div>
       </div>
@@ -936,16 +936,17 @@ function toggleRecipe(id) {
             <img src="images/img_010_51fbe4ba.png" alt="Cavolo in salamoia" />
             <img src="images/img_015_0be90d0e.png" alt="Cavolo salato pronto" />
           </div>
-          <div class="brining-info">
-          <h4>Tempo di salamoia</h4>
+          <div>
+          <div class="sub-sub-heading">Tempo di salamoia</div>
           <p>Il tempo di salatura è di 6–10 ore (come indicato nelle ricette). In un ambiente caldo (18–20°C) bastano 7–9 ore; in un luogo freddo servono 12–15 ore. A metà del tempo, capovolgere i pezzi di cavolo per una salatura uniforme.</p>
-          <h4>Come verificare</h4>
+          <div class="sub-sub-heading">Come verificare</div>
           <p>Piegare la parte bianca più spessa del gambo. Se si piega dolcemente senza spezzarsi, il cavolo è pronto. Se è ancora rigido e si spezza, lasciare in salamoia per altre 1–2 ore.</p>
-          <h4>Stato ideale</h4>
+          <div class="sub-sub-heading">Stato ideale</div>
           <p>I gambi restano freschi e croccanti, mentre le foglie sono morbide e appassite. Se anche i gambi sono completamente molli, il cavolo è troppo salato e il kimchi rischia di essere troppo salato e molle.</p>
-          <h4>Dopo la salatura</h4>
+          <div class="sub-sub-heading">Dopo la salatura</div>
           <p>Sciacquare il cavolo 3–4 volte in acqua fredda. Poi capovolgerlo con le foglie interne verso il basso su un colapasta e lasciare scolare per 30 minuti–3 ore.</p>
         </div>
+      </div>
       </div>
       <div class="section-block">
         <h3>Come preparare il condimento</h3>
@@ -981,7 +982,6 @@ function toggleRecipe(id) {
           <div class="farcing-step"><div class="farcing-num">7</div><div class="farcing-step-body"><span class="farcing-step-title">Riporre nel contenitore:</span><p class="farcing-step-desc">Posizionare ogni cespo avvolto nel contenitore con la chiusura rivolta verso il basso, in modo che non si apra. Pressare bene per eliminare l'aria tra i cespi.</p></div></div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- RICETTA 2 -->
@@ -1036,14 +1036,14 @@ function toggleRecipe(id) {
             <img src="images/img_010_51fbe4ba.png" alt="Cavolo in salamoia" />
             <img src="images/img_015_0be90d0e.png" alt="Cavolo salato pronto" />
           </div>
-          <div class="brining-info">
-            <h4>Tempo di salamoia</h4>
+          <div>
+            <div class="sub-sub-heading">Tempo di salamoia</div>
             <p>Il tempo di salatura è di 6–10 ore (come indicato nelle ricette). In un ambiente caldo (18–20°C) bastano 7–9 ore; in un luogo freddo servono 12–15 ore. A metà del tempo, capovolgere i pezzi di cavolo per una salatura uniforme.</p>
-            <h4>Come verificare</h4>
+            <div class="sub-sub-heading">Come verificare</div>
             <p>Piegare la parte bianca più spessa del gambo. Se si piega dolcemente senza spezzarsi, il cavolo è pronto. Se è ancora rigido e si spezza, lasciare in salamoia per altre 1–2 ore.</p>
-            <h4>Stato ideale</h4>
+            <div class="sub-sub-heading">Stato ideale</div>
             <p>I gambi restano freschi e croccanti, mentre le foglie sono morbide e appassite.</p>
-            <h4>Dopo la salatura</h4>
+            <div class="sub-sub-heading">Dopo la salatura</div>
             <p>Sciacquare il cavolo 3–4 volte in acqua fredda. Scolare 30 minuti–3 ore.</p>
           </div>
         </div>
