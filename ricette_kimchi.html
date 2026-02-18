@@ -575,6 +575,29 @@
   </div>
 </div>
 
+<script>
+function closeIntro() {
+  var overlay = document.getElementById('introOverlay');
+  if (!overlay) return;
+  overlay.classList.add('fade-out');
+  setTimeout(function() {
+    overlay.classList.add('hidden');
+  }, 600);
+}
+function showView(id) {
+  var views = document.querySelectorAll('.view');
+  var navBtns = document.querySelectorAll('.nav-btn');
+  views.forEach(function(v) {
+    v.classList.toggle('active', v.id === 'view-' + id);
+  });
+  var navMap = { home: 0, base: 1, info: 2, brining: 3, consigli: 4 };
+  var idx = navMap[id];
+  navBtns.forEach(function(btn, i) {
+    btn.classList.toggle('active', i === idx);
+  });
+}
+</script>
+
   <header class="header">
     <div class="header-eyebrow">Dal Tempio Coreano</div>
     <h1>Ricette Kimchi per <em>Lella</em></h1>
